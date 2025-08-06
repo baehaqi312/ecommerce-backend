@@ -9,9 +9,22 @@ use App\Cart;
 
 class OrderController extends Controller
 {
-    public function index()
+
+    public function index(Request $request)
     {
-        $orders = Order::with('user', 'items.product')->get();
+        $user = $request->user();
+
+        if ($user->role == 1) {
+            // Role 1: tampilkan semua order, terbaru paling atas
+            $orders = Order::with('user', 'items.product')->orderBy('created_at', 'desc')->get();
+        } else if ($user->role == 2) {
+            // Role 2: tampilkan order milik user yang login saja, terbaru paling atas
+            $orders = Order::with('user', 'items.product')->where('user_id', $user->id)->orderBy('created_at', 'desc')->get();
+        } else {
+            // Role lain: kosongkan
+            $orders = [];
+        }
+
         return response()->json($orders);
     }
 
@@ -20,6 +33,7 @@ class OrderController extends Controller
         $order = Order::with('user', 'items.product')->find($id);
         return response()->json($order);
     }
+
     // app/Http/Controllers/Api/OrderController.php
     public function checkout(Request $request)
     {
@@ -85,6 +99,21 @@ class OrderController extends Controller
             'status' => 'success',
             'order' => $order,
             'snap_token' => $snapToken,
+        ]);
+    }
+
+    public function updatePaymentStatus(Request $request, Order $order)
+    {
+        // Validasi input
+        $request->validate([
+            'payment_status' => 'required|in:pending,success,failed',
+        ]);
+
+        $order->payment_status = $request->payment_status;
+        $order->save();
+
+        return response()->json([
+            'order' => $order
         ]);
     }
 

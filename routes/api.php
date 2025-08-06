@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\ProductController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,7 +25,11 @@ Route::middleware('auth:sanctum')->group(function() {
     require __DIR__ . '/api/product.php';
     require __DIR__ . '/api/cart.php';
     require __DIR__ . '/api/order.php';
+
+    Route::get('dashboard', [App\Http\Controllers\Api\DashboardController::class, 'index']);
 });
+
+Route::get('products', [ProductController::class, 'index']);
 
 Route::post('/login', 'Api\LoginController@index');
 Route::post('/register', 'Api\LoginController@register');
